@@ -1,0 +1,33 @@
+framework:
+    messenger:
+        default_bus: command.bus
+        buses:
+          command.bus:
+            middleware:
+              - App\Messenger\AuditMiddleware
+          event.bus:
+            default_middleware: allow_no_handlers
+            middleware:
+              - App\Messenger\AuditMiddleware
+          query.bus: ~
+
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        failure_transport: failed
+
+        transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
+             async:
+               dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+               retry_strategy:
+                 delay: 2000
+             async_priority_high:
+               dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+               options:
+                 group: high_priority
+             failed: 'doctrine://default?table_name=failed'
+            # sync: 'sync://'
+
+        routing:
+            # Route your messages to the transports
+             'App\Message\Command\AddPonkaToImage': async_priority_high
+             'App\Message\Event\ImagePostDeletedEvent': async
