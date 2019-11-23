@@ -40,12 +40,18 @@ class ExternalJsonMessengerSerializer implements SerializerInterface
             throw new MessageDecodingFailedException('Missing the emoji key!');
         }
 
-        $message = new LogEmoji($data['emoji']);
+        if (!isset($headers['type'])) {
+            throw new MessageDecodingFailedException('Missing "type" header');
+        }
 
-        $envelope = new Envelope($message);
-        $envelope = $envelope->with(new BusNameStamp('command.bus'));
+        switch ($headers['type']) {
+            case 'emoji':
+                return $this->createLogEmojiEnvelope($data);
+//            case 'delete_photo':
+//                break;
+        }
 
-        return $envelope;
+        throw new MessageDecodingFailedException(sprintf('Invalid type "%s"', $headers['type']));
     }
 
     /**
@@ -62,5 +68,19 @@ class ExternalJsonMessengerSerializer implements SerializerInterface
     public function encode(Envelope $envelope): array
     {
         throw new \Exception('Transport & serializer not meant for sending messages.');
+    }
+
+    /**
+     * @param array $data
+     * @return Envelope
+     */
+    public function createLogEmojiEnvelope(array $data): Envelope
+    {
+        $message = new LogEmoji($data['emoji']);
+
+        $envelope = new Envelope($message);
+        $envelope = $envelope->with(new BusNameStamp('command.bus'));
+
+        return $envelope;
     }
 }
