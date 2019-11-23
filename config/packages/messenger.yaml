@@ -18,15 +18,27 @@ framework:
             # https://symfony.com/doc/current/messenger.html#transport-configuration
              async:
                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+               serializer: messenger.transport.symfony_serializer
                retry_strategy:
                  delay: 2000
+               options:
+                 exchange:
+                   name: messages
+                   type: direct
+                   default_publish_routing_key: normal
+                 queues:
+                   messages_normal:
+                     binding_keys: [normal]
              async_priority_high:
                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                options:
                  exchange:
-                   name: messages_high_priority
+                   name: messages
+                   type: direct
+                   default_publish_routing_key: high
                  queues:
-                   messages_high: ~
+                   messages_high:
+                     binding_keys: [high]
              failed: 'doctrine://default?table_name=failed'
             # sync: 'sync://'
 
